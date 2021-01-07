@@ -26,5 +26,5 @@ for massSystem = [0.2704:0.025:1] % Loop from minimum (w/o battery) to 1kg
     
     torques = [torques torque]; % Changes size dynamically as the loop iterates. Bad practice?
     masses(end+1) = massSystem;
-    
+    %test
 end
