@@ -1,10 +1,10 @@
 % Initializing arrays for calculations % 
 
-angles = [10:1:40]';
+angles = [10:1:40];
 masses = [];
 torques = [];
 
-for massSystem = [0.2704:0.025:1] % Loop from minimum (w/o battery) to 1kg 
+for massSystem = [0.2704:0.1:1] % Loop from minimum (w/o battery) to 1kg 
     
     % Givens %
 
@@ -28,3 +28,11 @@ for massSystem = [0.2704:0.025:1] % Loop from minimum (w/o battery) to 1kg
     masses(end+1) = massSystem;
     %test
 end
+
+% Plotting 
+
+plot(angles, torques);
+title("Max Angle vs Required Torque")
+xlabel("Angle [deg]");
+ylabel("Torque [N*m]");
+
