@@ -1,4 +1,5 @@
-# physical-simulations
+# capstone
 
-* MATLAB script to help us simulate different scenarios for our capstone project
-* Tests for how required performance changes versus different variables
+* Working repository for capstone project
+* Contains different parts of the project
+
