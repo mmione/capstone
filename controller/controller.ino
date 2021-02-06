@@ -1,8 +1,11 @@
+
 #define ENCODER_INPUT_1 3
 #define ENCODER_INPUT_2 4
+#define PWM_PIN 5 
 
 #define GEAR_RATIO 20
 #define ENCODER_FACTOR 12
+
 
 // Need to use volatile variables as their values may be messed with by the interrupts
 
@@ -39,6 +42,8 @@ void setup() {
   pinMode(ENCODER_INPUT_1, INPUT_PULLUP);
   pinMode(ENCODER_INPUT_2, INPUT_PULLUP);
 
+  pinMode(PWM_PIN, OUTPUT);
+
   // One of the pins needs to be an interrupt pin, for the rotary encoder idea to work.
   attachInterrupt(digitalPinToInterrupt(ENCODER_INPUT_1), isr, RISING);
 
@@ -50,7 +55,9 @@ void setup() {
 
 void loop() {
 
-  Serial.println(avgRPM(1));
+  //Serial.println(millis());
+  PWM(1000, 75, PWM_PIN);
+  
   
   
 }
@@ -60,11 +67,11 @@ float avgRPM(int pollingInterval){ // Float has the same amt of precision as dou
   // Take average of the RPM values to x amount of milliseconds
   
   int sum = RPM;
-  float time = millis();
+  int time = millis();
   int counter = 0;
   
   while(counter<=4){
-    float currentTime = millis();
+    int currentTime = millis();
     if ((currentTime - time)>=pollingInterval){ // Essentially delays by 5*pollingInterval [ms]
       counter++;
       time = currentTime;
@@ -74,4 +81,24 @@ float avgRPM(int pollingInterval){ // Float has the same amt of precision as dou
   }
 
   return sum/5;
+}
+
+void PWM(int period, int dutyCycle, int pinNumber){
+
+   int startTime = millis();
+   int currentTime = 0;
+
+   digitalWrite(pinNumber,HIGH);
+   do {
+    currentTime = millis();
+   } while (currentTime - startTime < startTime+(dutyCycle/100)*period);
+
+   if(dutyCycle < 100){ 
+     digitalWrite(pinNumber,LOW);
+     do {
+      currentTime = millis();
+     } while (currentTime - startTime < startTime+period);
+   }
+  
+
 }
