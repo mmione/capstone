@@ -5,14 +5,14 @@ masses = [];
 torques = [];
 
 massBattery = 0.6332739; % Change these as needed
-massNoBattery = 0.2064; 
+massNoBattery = 0.2064*0.3; %  Assuming X infill
 
 for massSystem = [[massNoBattery:0.1:massBattery] massBattery] % Loop from minimum (w/o battery) to 1kg 
     
     % Givens %
 
     diskMass = 0.2;
-    radiusDisk = 0.07;
+    radiusDisk = 0.05;
     RPM = 400;
     %massSystem = 0.2704;
     g=9.81;

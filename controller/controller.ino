@@ -50,7 +50,27 @@ void setup() {
 
 void loop() {
 
-  Serial.println((int)RPM);
-  delay(5);
+  Serial.println(avgRPM(1));
   
+}
+
+float avgRPM(int pollingInterval){ // Float has the same amt of precision as double on Arduino Uno
+
+  // Take average of the RPM values to x amount of milliseconds
+  
+  int sum = RPM;
+  float time = millis();
+  int counter = 0;
+  
+  while(counter<=4){
+    float currentTime = millis();
+    if ((currentTime - time)>=pollingInterval){ // Essentially delays by 5*pollingInterval [ms]
+      counter++;
+      time = currentTime;
+      sum += RPM;
+    }
+    
+  }
+
+  return sum/5;
 }
