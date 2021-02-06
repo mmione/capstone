@@ -52,6 +52,7 @@ void loop() {
 
   Serial.println(avgRPM(1));
   
+  
 }
 
 float avgRPM(int pollingInterval){ // Float has the same amt of precision as double on Arduino Uno
