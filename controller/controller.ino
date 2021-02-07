@@ -56,7 +56,7 @@ void setup() {
 void loop() {
 
   //Serial.println(millis());
-  PWM(1000, 75, PWM_PIN);
+  PWM(1000,1, PWM_PIN);
   
   
   
@@ -83,22 +83,19 @@ float avgRPM(int pollingInterval){ // Float has the same amt of precision as dou
   return sum/5;
 }
 
-void PWM(int period, int dutyCycle, int pinNumber){
+int PWM(int period, float dutyCycle, int pinNumber){
+  int startTime = millis();
+  int currentTime = 0;
+ 
+  digitalWrite(pinNumber,HIGH);
 
-   int startTime = millis();
-   int currentTime = 0;
+  while(currentTime - startTime < period){
 
-   digitalWrite(pinNumber,HIGH);
-   do {
+    if(currentTime >= startTime + period*dutyCycle){
+      digitalWrite(pinNumber,LOW);
+    }
     currentTime = millis();
-   } while (currentTime - startTime < startTime+(dutyCycle/100)*period);
-
-   if(dutyCycle < 100){ 
-     digitalWrite(pinNumber,LOW);
-     do {
-      currentTime = millis();
-     } while (currentTime - startTime < startTime+period);
-   }
-  
+  } 
+  return 0;
 
 }
