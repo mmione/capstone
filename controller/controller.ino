@@ -1,7 +1,9 @@
 
 #define ENCODER_INPUT_1 3
 #define ENCODER_INPUT_2 4
-#define PWM_PIN 5 
+#define PWM_PIN 6
+#define BUTTON_INPUT 2
+#define POTENTIOMETER A0
 
 #define GEAR_RATIO 20
 #define ENCODER_FACTOR 12
@@ -13,6 +15,8 @@ volatile bool motordir = false;
 volatile uint32_t lastA = 0; // Unsigned int, 32bit long
 volatile float RPM = 0; 
 
+int buttonState = 1;
+float potentiometerReading;
 void isr(){
 
   // Read motor's direction
@@ -41,23 +45,32 @@ void setup() {
   // Setting up pins
   pinMode(ENCODER_INPUT_1, INPUT_PULLUP);
   pinMode(ENCODER_INPUT_2, INPUT_PULLUP);
-
-  pinMode(PWM_PIN, OUTPUT);
+  pinMode(BUTTON_INPUT, INPUT_PULLUP);
+  pinMode(POTENTIOMETER, INPUT);
+  pinMode(PWM_PIN, OUTPUT); 
+ 
 
   // One of the pins needs to be an interrupt pin, for the rotary encoder idea to work.
   attachInterrupt(digitalPinToInterrupt(ENCODER_INPUT_1), isr, RISING);
 
   // Serial for debugging 
-  Serial.begin(9600);
+  //Serial.begin(9600);
   
 }
 
 
 void loop() {
-
-  //Serial.println(millis());
-  PWM(1000,1, PWM_PIN);
-  
+    
+   potentiometerReading = (float)analogRead(POTENTIOMETER)/1023;
+   
+//   Serial.print("Duty Cycle:\t");
+//   Serial.print(potentiometerReading);
+//   Serial.print(" RPM:\t");
+//   Serial.println(avgRPM(10));   
+   analogWrite(PWM_PIN,255*potentiometerReading); // Need around 120-130 to start. 
+   
+   
+   //Serial.println(avgRPM(20));
   
   
 }
@@ -83,19 +96,19 @@ float avgRPM(int pollingInterval){ // Float has the same amt of precision as dou
   return sum/5;
 }
 
-int PWM(int period, float dutyCycle, int pinNumber){
-  int startTime = millis();
-  int currentTime = 0;
- 
-  digitalWrite(pinNumber,HIGH);
-
-  while(currentTime - startTime < period){
-
-    if(currentTime >= startTime + period*dutyCycle){
-      digitalWrite(pinNumber,LOW);
-    }
-    currentTime = millis();
-  } 
-  return 0;
-
-}
+//int PWM(int period, float dutyCycle, int pinNumber){
+//  int startTime = millis();
+//  int currentTime = 0;
+// 
+//  digitalWrite(pinNumber,HIGH);
+//
+//  while(currentTime - startTime < period){
+//
+//    if(currentTime >= startTime + period*dutyCycle){
+//      digitalWrite(pinNumber,LOW);
+//    }
+//    currentTime = millis();
+//  } 
+//  return 0;
+//
+//}
