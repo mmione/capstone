@@ -5,5 +5,8 @@
 * NOTE: this is a working directory
 
 
-## Circuit Diagram
+## Circuit Diagram (built for testing motor response)
 ![](diagram.png)
+
+## Circuit Diagram (final version)
+![](diagram_2.png)
