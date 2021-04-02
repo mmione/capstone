@@ -2,8 +2,12 @@
 #define ENCODER_INPUT_1 3
 #define ENCODER_INPUT_2 4
 #define PWM_PIN 6
-#define BUTTON_INPUT 2
-#define POTENTIOMETER A0
+//#define BUTTON_INPUT 2
+//#define POTENTIOMETER A0
+
+// Defining output pins for controlling motor direction. 
+#define INA 8
+#define INB 9 
 
 #define GEAR_RATIO 20
 #define ENCODER_FACTOR 12
@@ -38,7 +42,11 @@ uint8_t fifoBuffer[64]; // FIFO storage buffer
 //Quaternion and gravity vectors are used to calculate ypr with more accuracy
 Quaternion q;     //In this case it becomes a three dimensional vector which is used in calculations involving rotations      
 VectorFloat gravity; //Such as the ypr calculations 
-float ypr[3];           
+float ypr[3]; 
+
+// Need to store the value of roll in deg.
+
+float rollDeg;
 
 //Needed everytime the FIFO buffer is filled with data and ready to be Dumped
 volatile bool mpuInterrupt = false;     //When FIFO buffer its full, the interrupt becomes high
@@ -75,9 +83,14 @@ void setup() {
   // Setting up pins
   pinMode(ENCODER_INPUT_1, INPUT_PULLUP);
   pinMode(ENCODER_INPUT_2, INPUT_PULLUP);
-  pinMode(BUTTON_INPUT, INPUT_PULLUP);
-  pinMode(POTENTIOMETER, INPUT);
+
+  // Collection of pins BELOW are used for controlling motor driver.
   pinMode(PWM_PIN, OUTPUT); 
+  pinMode(INA, OUTPUT);
+  pinMode(INB, OUTPUT);
+  // Below is unneeded and was used for testing.
+//  pinMode(BUTTON_INPUT, INPUT_PULLUP);
+//  pinMode(POTENTIOMETER, INPUT);
  
 
   // One of the pins needs to be an interrupt pin, for the rotary encoder idea to work.
@@ -119,11 +132,13 @@ void setup() {
     //and is ready to be read
 
     //Setup for your Gyroscope - Juan: Mine is very stable with these offsets for the pitch. Use whichever angle is more stable at a neutral position
-    mpu.setXGyroOffset(220);
-    mpu.setYGyroOffset(76);
-    mpu.setZGyroOffset(-85);
-    mpu.setZAccelOffset(1788); 
-  
+//    mpu.setXGyroOffset(220);
+//    mpu.setYGyroOffset(76);
+//    mpu.setZGyroOffset(-85);
+//    mpu.setZAccelOffset(1788); 
+
+    //mpu.calibrateGyro();
+    
 }
 
 
@@ -169,15 +184,40 @@ void loop() {
         fifoCount -= packetSize;
 
         mpu.dmpGetQuaternion(&q, fifoBuffer); //Gets quaternion vector using whats stored in the FIFO Buffer
+
+        // Possibly get rid of this -- may not be super necessary could approx to 9.8m/s^2? 
         mpu.dmpGetGravity(&gravity, &q); //Gets the gravity vector which is used for more accurate calculations even though its not necessary
         mpu.dmpGetYawPitchRoll(ypr, &q, &gravity); //Calculates the angles in radians for yaw pitch roll
-        Serial.print("Yaw -> ");
-        Serial.print(ypr[0] * 180/M_PI); //Convert to degrees from rads
-        Serial.print("     Pitch -> ");
-        Serial.print(ypr[1] * 180/M_PI); //Convert to degrees from rads
+
+        // We may just need the ROLL component to get things working. 
+//        Serial.print("Yaw -> ");
+//        Serial.print(ypr[0] * 180/M_PI); //Convert to degrees from rads
+//        Serial.print("     Pitch -> ");
+//        Serial.print(ypr[1] * 180/M_PI); //Convert to degrees from rads
         Serial.print("     Roll -> ");
-        Serial.println(ypr[2] * 180/M_PI); //Convert to degrees from rads
+
+        rollDeg = ypr[2] * 180/M_PI;
+        
+        Serial.println(rollDeg); //Convert to degrees from rads
+
+//        analogWrite(PWM_PIN, 255);
+//
+//        // INA = 1, INB = 0,  CLOCKWISE SPIN (facing the bike head on)
+//        // INA = 0, INB = 1,  COUNTERCLOCKWISE SPIN
+//        
+//        digitalWrite(INA, 1);
+//        digitalWrite(INB, 0); 
     }
+
+    analogWrite(PWM_PIN, 255);
+
+    // INA = 1, INB = 0,  CLOCKWISE SPIN (facing the bike head on)
+    // INA = 0, INB = 1,  COUNTERCLOCKWISE SPIN
+    // if rollDeg > 0, tilted ccw, else tilted cw
+
+    // Branchless system to respond to 
+    digitalWrite(INA, 1*(rollDeg>0));
+    digitalWrite(INB, 1*(rollDeg<0)); 
   
 }
 
