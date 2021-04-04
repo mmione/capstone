@@ -28,7 +28,7 @@ float potentiometerReading;
 #include "MPU6050_6Axis_MotionApps20.h"
 #include "MPU6050.h" 
 #include "Wire.h"
-
+#include <PID_v1.h>
 MPU6050 mpu;
 
 // MPU control/status vars
@@ -54,6 +54,16 @@ void dmpDataReady() {
     mpuInterrupt = true;
 }
 
+// PID stuff *********************************** // 
+
+// SETPOINT: our GOAL angle
+// INPUT: angle reading
+// OUTPUT: PWM pin of motor. 
+double Setpoint, Input, Output;
+
+//Specify the links and initial tuning parameters
+double Kp=2, Ki=5, Kd=1;
+PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 void isr(){
 
@@ -138,6 +148,15 @@ void setup() {
 //    mpu.setZAccelOffset(1788); 
 
     //mpu.calibrateGyro();
+
+    // PID SETUP ***************************************** //
+    //initialize the variables we're linked to
+    Input = 999;
+    Setpoint = 0; // This is the angle we are always trying to target.
+  
+    //turn the PID on
+    myPID.SetMode(AUTOMATIC);
+
     
 }
 
@@ -154,6 +173,17 @@ void loop() {
    
    
    //Serial.println(avgRPM(20));
+
+    
+    //analogWrite(PWM_PIN, 255*(!(rollDeg>2 && rollDeg<-2)));
+
+    // INA = 1, INB = 0,  CLOCKWISE SPIN (facing the bike head on)
+    // INA = 0, INB = 1,  COUNTERCLOCKWISE SPIN
+    // if rollDeg > 0, tilted ccw, else tilted cw
+
+//    // Branchless system to respond to 
+//    digitalWrite(INA, 1*(rollDeg>2));
+//    digitalWrite(INB, 1*(rollDeg<-2)); 
 
     if (!MPUInitialized){
       return; //Will only run if the initialization was unsuccessful or there was an error in the setup
@@ -196,10 +226,20 @@ void loop() {
 //        Serial.print(ypr[1] * 180/M_PI); //Convert to degrees from rads
         Serial.print("     Roll -> ");
 
-        rollDeg = ypr[2] * 180/M_PI;
+        //rollDeg = ypr[2] * 180/M_PI;
+        Input = ypr[2] * 180/M_PI;
         
-        Serial.println(rollDeg); //Convert to degrees from rads
+        
+        Serial.println(Input); //Convert to degrees from rads
 
+        myPID.Compute();
+        // Compute() function simply calculates and "puts" what it thinks
+        // is the "right" value to the motor. 
+
+        digitalWrite(INA, 1*(rollDeg>2));
+        digitalWrite(INB, 1*(rollDeg<-2)); 
+        analogWrite(PWM_PIN, 255);
+      
 //        analogWrite(PWM_PIN, 255);
 //
 //        // INA = 1, INB = 0,  CLOCKWISE SPIN (facing the bike head on)
@@ -207,17 +247,10 @@ void loop() {
 //        
 //        digitalWrite(INA, 1);
 //        digitalWrite(INB, 0); 
-    }
 
-    analogWrite(PWM_PIN, 255);
 
-    // INA = 1, INB = 0,  CLOCKWISE SPIN (facing the bike head on)
-    // INA = 0, INB = 1,  COUNTERCLOCKWISE SPIN
-    // if rollDeg > 0, tilted ccw, else tilted cw
+  }
 
-    // Branchless system to respond to 
-    digitalWrite(INA, 1*(rollDeg>0));
-    digitalWrite(INB, 1*(rollDeg<0)); 
   
 }
 
